@@ -3,19 +3,22 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <typeinfo>
+#include <algorithm>
+#include <iterator>
+#include <numeric>
+#include <cmath>
+#include <cstdlib>
 using namespace std;
 
 // definimos la funcion split
-vector<string> split(const string& str, char delimiter) {
+vector<string> split(const string& str, char delimiter){
     vector<string> tokens;
     string token;
     istringstream tokenStream(str);
-    
-    while (getline(tokenStream, token, delimiter)) {
-        cout << "mmmmmm" << endl;
+    while (getline(tokenStream, token, delimiter)){
         tokens.push_back(token);
     }
-
     return tokens;
 }
 
