@@ -3,29 +3,78 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
-#include <typeinfo>
-#include <algorithm>
-#include <iterator>
-#include <numeric>
-#include <cmath>
-#include <cstdlib>
+
 using namespace std;
 
+vector<vector<int>> readDataFromFile(const string& filename) {
+    vector<vector<int>> data;
+    ifstream input_file(filename);
+    string line;
+    
+    if (!input_file.is_open()) {
+        cout << "Could not open the file - '" << filename << "'" << endl;
+        return data;
+    }
+    
+    while (getline(input_file, line)) {
+        vector<int> line_data;
+        std::istringstream line_stream(line);
+        int number;
+        
+        while (line_stream >> number) {
+            line_data.push_back(number);
+        }
+        
+        data.push_back(line_data);
+    }
+    
+    input_file.close();
+    return data;
+}
+
 // definimos la funcion split
-vector<string> split(const string& str, char delimiter){
+vector<string> split(const string& str, char delimiter) {
     vector<string> tokens;
     string token;
     istringstream tokenStream(str);
-    while (getline(tokenStream, token, delimiter)){
+    
+    while (getline(tokenStream, token, delimiter)) {
+        cout << "mmmmmm" << endl;
         tokens.push_back(token);
     }
+
     return tokens;
 }
 
-int heuristica_vmc(int m){
 
-    // iterar por cada vecino
-    //for(int a, a < )
+void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
+
+    // me creo el archivo de salida
+    string solucion = "solucion_heuristica_vmc";
+    ofstream output_file(solucion);
+    
+    // iterar por cada vendedor
+    for(int a = 0; a < vendedores; a++){
+        // itero por cada deposito
+        int min = 99999999;
+        int deposito_mas_cerca;
+        for(int b = 0; b < depositos; b++){
+            if (distancias[b][a] < min){
+                min = distancias[b][a];
+                deposito_mas_cerca = b;
+            }
+        }
+        // escribo la asignacion en el archivo solucion
+        for (int i = 0; i < deposito_mas_cerca; i++) {
+            if (i == deposito_mas_cerca) {
+                output_file << a;
+            } else {
+                output_file << std::endl;
+            }
+        }
+    }
+    output_file.close();
+    std::cout << "File created and written successfully - '" << solucion << "'" << std::endl;
 }
 
 
@@ -69,6 +118,7 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
 
     input_file.close();
     return EXIT_SUCCESS;
+    
 }
 
 
@@ -163,6 +213,8 @@ int main(int argc, char** argv) {
         }
         deposito_3++;
     }
+
+    heuristica_vmc(depositos, vendedores, distancias, demandas, capacidades);
 
     vector<int> cap;
     cap.push_back(30);
