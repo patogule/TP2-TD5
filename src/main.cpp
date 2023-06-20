@@ -48,7 +48,7 @@ vector<string> split(const string& str, char delimiter) {
 
 
 // HEURISTICAS CONSTRUCTIVAS
-void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
+int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
 
     // me creo el archivo de salida
     string solucion = "solucion_heuristica_vmc";
@@ -56,6 +56,9 @@ void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distanci
 
     // me creo mi vector de capacidades restantes
     vector<int> capacidades_restantes = capacidades;
+
+    // me creo una variable para guardar la distancia total recorrida
+    int dist_total = 0;
     
     // iterar por cada vendedor
     for(int a = 0; a < vendedores; a++){
@@ -71,6 +74,7 @@ void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distanci
         // escribo la asignacion en el archivo solucion
         if(min != 99999999){
             capacidades_restantes[deposito_mas_cerca] = capacidades_restantes[deposito_mas_cerca] - demandas[deposito_mas_cerca][a];
+            dist_total = dist_total + min;
             for (int i = 0; i < deposito_mas_cerca; i++) {
             if (i == deposito_mas_cerca) {
                 output_file << a;
@@ -79,10 +83,21 @@ void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distanci
             }
             }
         }
+        else{
+            // busco la distancia mas grande del vendedor a que no pudo ser asignado
+            int max = 0;
+            for(int c = 0; c < depositos; c++){
+                if (distancias[c][a] > max){
+                    max = distancias[c][a];
+            }
+            dist_total = dist_total + (3 * max);
+            }
+        }
     
     }
     output_file.close();
     std::cout << "File created and written successfully - '" << solucion << "'" << std::endl;
+    return dist_total;
 }
 
 void heuristica_insercion(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
