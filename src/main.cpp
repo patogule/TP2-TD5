@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// FUNCIONES AUXILIARES
 vector<vector<int>> readDataFromFile(const string& filename) {
     vector<vector<int>> data;
     ifstream input_file(filename);
@@ -32,7 +33,6 @@ vector<vector<int>> readDataFromFile(const string& filename) {
     return data;
 }
 
-// definimos la funcion split
 vector<string> split(const string& str, char delimiter) {
     vector<string> tokens;
     string token;
@@ -47,11 +47,15 @@ vector<string> split(const string& str, char delimiter) {
 }
 
 
+// HEURISTICAS CONSTRUCTIVAS
 void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
 
     // me creo el archivo de salida
     string solucion = "solucion_heuristica_vmc";
     ofstream output_file(solucion);
+
+    // me creo mi vector de capacidades restantes
+    vector<int> capacidades_restantes = capacidades;
     
     // iterar por cada vendedor
     for(int a = 0; a < vendedores; a++){
@@ -59,25 +63,34 @@ void heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distanci
         int min = 99999999;
         int deposito_mas_cerca;
         for(int b = 0; b < depositos; b++){
-            if (distancias[b][a] < min){
+            if (distancias[b][a] < min && (capacidades_restantes[b] >= demandas[b][a])){
                 min = distancias[b][a];
                 deposito_mas_cerca = b;
             }
         }
         // escribo la asignacion en el archivo solucion
-        for (int i = 0; i < deposito_mas_cerca; i++) {
+        if(min != 99999999){
+            capacidades_restantes[deposito_mas_cerca] = capacidades_restantes[deposito_mas_cerca] - demandas[deposito_mas_cerca][a];
+            for (int i = 0; i < deposito_mas_cerca; i++) {
             if (i == deposito_mas_cerca) {
                 output_file << a;
             } else {
                 output_file << std::endl;
             }
+            }
         }
+    
     }
     output_file.close();
     std::cout << "File created and written successfully - '" << solucion << "'" << std::endl;
 }
 
+void heuristica_insercion(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
 
+}
+
+
+// BUSQUEDA LOCAL
 int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > demandas) {
     string filename(filenamee);
     vector<string> lines;
