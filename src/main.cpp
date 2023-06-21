@@ -46,6 +46,15 @@ vector<string> split(const string& str, char delimiter) {
     return tokens;
 }
 
+int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
+    int resultado = 0;
+    for (int l = 0; l < vec.size(); l++){
+        for (int m = 0; m < vec[l].size(); m++){
+            resultado = resultado + distancias[l][vec[l][m]];
+        }
+    }
+    return resultado;
+} 
 
 // HEURISTICAS CONSTRUCTIVAS
 int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
@@ -100,13 +109,18 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancia
     return dist_total;
 }
 
-void heuristica_insercion(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
-
+void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
+   
 }
 
 
 // BUSQUEDA LOCAL
-int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > demandas) {
+int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+    // nos creamos el archivo de salida
+    string solucion_rel = "solucion_busqueda_local_relocate";
+    ofstream output_file_rel(solucion_rel);
+
+    // leemos el archivo de entrada
     string filename(filenamee);
     vector<string> lines;
     string line;
@@ -120,9 +134,11 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
 
     while (getline(input_file, line)) {
         cout << line;
+        output_file_rel << line << endl;
         lines.push_back(line);
     }
 
+    // calculamos la capacidad disponible de cada deposito en la solucion original
     vector<int> capacidad_disponible;
     for (size_t i = 0; i < lines.size(); ++i) {
         const string& line = lines[i];
@@ -142,7 +158,60 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
         capacidad_disponible[i] = capacidades[i] - sum;
         cout << "Sum of numbers in line " << i << ": " << sum << "capacidad disponible: " << capacidad_disponible[i] << endl;
     }
+    
 
+    // convertimos nuestras lines de string a int
+    vector<vector<int> > lines_int;
+    for (size_t j = 0; j < lines.size(); ++j){
+        vector<std::string> depo;
+        char delim = ' ';
+        depo = split(line, delim);
+        vector<int> depo_int;
+        for (string numerito : depo){
+            depo_int.push_back(stod(numerito));
+        }
+        lines_int.push_back(depo_int);
+    }
+
+    // distancia total original
+    int dist_total = distancia_total(lines_int, distancias);
+
+    // iteramos por los depositos
+    for (int z = 0; z < lines_int.size(); z++){
+        // iteramos por los vendedores
+        for(int k = 0; k < lines_int[z].size(); k++){
+            // cada vendedor lo cambiamos de dposito
+            for(int q = 0; k < lines_int.size(); q++){
+                // calcular la distancia total de la nueva solucion
+                if (q != z){
+                    if( capacidad_disponible[q] >= demandas[z][lines_int[z][k]]){
+                        int dist_parcial = dist_total - distancias[z][lines_int[z][k]] + distancias[q][lines_int[z][k]];
+                        if (dist_parcial < dist_total){
+                            dist_total = dist_parcial;
+                            // escribimos la nueva solucion parcial en nuestro archivo salida
+                            lines_int[q].push_back(lines_int[z][k]);
+                            lines_int[z].erase(k);
+
+                            input_file.seekp(0); // Vuelve al inicio del archivo
+                            input_file.truncate(0); // Borra el contenido existente
+
+
+
+                            
+
+                        }
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    lines_int[0] = 2 9 8 5  
+    lines_int[1] = 4 1
+    lines_int[2] = 6 7
+    
 
     input_file.close();
     return EXIT_SUCCESS;
