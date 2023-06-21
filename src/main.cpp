@@ -123,18 +123,41 @@ void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distanci
     // iterar por cada deposito
     for(int d = 0; d < depositos; d++){
         // itero por cada vendedor 
-        int vecino_mas_cerca;
-        for(int e = 0; e < vendedores; e++){
-            // busco el vendedor mas cercano al deposito
-            int min = min(distancias[d][e]);
-            //agrego el vendedor mas cercano al deposito d hasta que no entre la demanda del minimo al deposito
-            while (capacidades_restantes[d] >= demandas[d][min]){
+        int min = 99999999;
+        int vendedor_mas_cerca;
+        //mientras ese deposito tenga espacio y pueda asignar el vendedor mas cercano, sigo iterando
+        while (capacidades_restantes[d] >= 0){
+            for(int e = 0; e < vendedores; e++){
+                // busco el vendedor mas cercano al deposito
+                if (distancias[d][e] < min && (capacidades_restantes[d] >= demandas[d][e])){
+                    min = distancias[d][e];
+                    vendedor_mas_cerca = e;
+                    //le resto a la capacidad del deposito la demanda del vendedor asignado
+                    capacidades_restantes[d] = capacidades_restantes[d] - demandas[d][vendedor_mas_cerca];
+                    //borro al vendedor minimo de la lista de vendedores para que no se vuelva a asignar
+                    vendedores.erase(vendedores[e]);
+                }
 
-                        min = distancias[b][a];
-                        vecino_mas_cerca = e;
+
+                //no se si hacer la asignacion aca abajo o arriba 
+
+                // escribo la asignacion en el archivo solucion
+                if(min != 99999999){
+                    capacidades_restantes[d] = capacidades_restantes[d] - demandas[d][vendedor_mas_cerca];
+                    vendedores.erase(vendedores[e]);
+                    dist_total = dist_total + min;
+                    for (int i = 0; i < d; i++) {
+                        if (i == d) {
+                            output_file << e;
+                        } else {
+                            output_file << std::endl;
+                        }
                     }
                 }
+                        
+            }
         }
+    }
 
 }
 
