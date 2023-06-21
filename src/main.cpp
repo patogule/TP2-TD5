@@ -110,8 +110,35 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancia
 }
 
 void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
-   
+    
+    // me creo el archivo de salida
+    string solucion = "solucion_heuristica_deposito_mc";
+    ofstream output_file(solucion);
+
+    vector<int> capacidades_restantes = capacidades;
+
+    // me creo una variable para guardar la distancia total recorrida
+    int dist_total = 0;
+
+    // iterar por cada deposito
+    for(int d = 0; d < depositos; d++){
+        // itero por cada vendedor 
+        int vecino_mas_cerca;
+        for(int e = 0; e < vendedores; e++){
+            // busco el vendedor mas cercano al deposito
+            int min = min(distancias[d][e]);
+            //agrego el vendedor mas cercano al deposito d hasta que no entre la demanda del minimo al deposito
+            while (capacidades_restantes[d] >= demandas[d][min]){
+
+                        min = distancias[b][a];
+                        vecino_mas_cerca = e;
+                    }
+                }
+        }
+
 }
+
+
 
 
 // BUSQUEDA LOCAL
