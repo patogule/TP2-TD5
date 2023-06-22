@@ -110,55 +110,82 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancia
 }
 
 void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
-    
-    // me creo el archivo de salida
-    string solucion = "solucion_heuristica_deposito_mc";
-    ofstream output_file(solucion);
 
     vector<int> capacidades_restantes = capacidades;
+
+    // me creo vectores solucion 
+    vector<vector<int> > rta;
+    for( int v = 0; v < depositos; v++){
+        rta.push_back({});
+    }
 
     // me creo una variable para guardar la distancia total recorrida
     int dist_total = 0;
 
+    // me creo una lista de booleanos para representar que vendedores estan asignados a un deposito
+    vector<bool> asignado(vendedores, false);
+
     // iterar por cada deposito
     for(int d = 0; d < depositos; d++){
         // itero por cada vendedor 
-        int min = 99999999;
         int vendedor_mas_cerca;
+        bool condicion =  true;
         //mientras ese deposito tenga espacio y pueda asignar el vendedor mas cercano, sigo iterando
-        while (capacidades_restantes[d] >= 0){
+        while (condicion){
+            int min = 99999999;
             for(int e = 0; e < vendedores; e++){
                 // busco el vendedor mas cercano al deposito
-                if (distancias[d][e] < min && (capacidades_restantes[d] >= demandas[d][e])){
+                if ((distancias[d][e] < min) && (capacidades_restantes[d] >= demandas[d][e]) && (asignado[e] == false)){
                     min = distancias[d][e];
                     vendedor_mas_cerca = e;
-                    //le resto a la capacidad del deposito la demanda del vendedor asignado
-                    capacidades_restantes[d] = capacidades_restantes[d] - demandas[d][vendedor_mas_cerca];
-                    //borro al vendedor minimo de la lista de vendedores para que no se vuelva a asignar
-                    vendedores.erase(vendedores[e]);
                 }
-
-
-                //no se si hacer la asignacion aca abajo o arriba 
-
-                // escribo la asignacion en el archivo solucion
-                if(min != 99999999){
-                    capacidades_restantes[d] = capacidades_restantes[d] - demandas[d][vendedor_mas_cerca];
-                    vendedores.erase(vendedores[e]);
-                    dist_total = dist_total + min;
-                    for (int i = 0; i < d; i++) {
-                        if (i == d) {
-                            output_file << e;
-                        } else {
-                            output_file << std::endl;
-                        }
-                    }
-                }
-                        
+            }
+            // escribo la asignacion en el archivo solucion
+            if(min != 99999999){
+                //le resto a la capacidad del deposito la demanda del vendedor asignado
+                capacidades_restantes[d] = capacidades_restantes[d] - demandas[d][vendedor_mas_cerca];
+                // marco este vendedor como ya asignado
+                asignado[vendedor_mas_cerca] = true;
+                dist_total = dist_total + min;
+                // agrego la asignacion al vector respuesta
+                rta[d].push_back(vendedor_mas_cerca);
+                
+            }
+            else{
+                condicion = false;
             }
         }
     }
+    for(int x = 0; x < asignado.size(); x++){
+        if (asignado[x] == false){
+            // busco la distancia mas grande del vendedor a que no pudo ser asignado
+            int max = 0;
+            for(int p = 0; p < depositos; p++){
+                if (distancias[p][x] > max){
+                    max = distancias[p][x];
+                }
+                dist_total = dist_total + (3 * max);
 
+            }
+        }
+    }
+    // escribir en el txt
+    // me creo el archivo de salida
+    string solucion = "solucion_heuristica_deposito_mc";
+    ofstream output_file(solucion);
+
+    if (output_file.is_open()) {
+        for (const auto& vector : rta) {
+            for (int elemento : vector) {
+                output_file << elemento << " ";
+            }
+            output_file << "\n"; // Nueva línea después de cada vector interno
+        }
+        output_file.close();
+        std::cout << "Vector de vectores de enteros escrito en el archivo correctamente." << std::endl;
+    } else {
+        std::cout << "No se pudo abrir el archivo." << std::endl;
+    }
 }
 
 
@@ -247,6 +274,7 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
 
 
 
+
                             
 
                         }
@@ -267,6 +295,7 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
     return EXIT_SUCCESS;
     
 }
+
 
 
 int main(int argc, char** argv) {
