@@ -83,12 +83,11 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
             for(int c = 0; c < depositos; c++){
                 if (distancias[c][a] > max){
                     max = distancias[c][a];
+                }
             }
             dist_total = dist_total + (3 * max);
             cout << "Se agrego una penalizacion de" << 3 * max << " por el vendedor " << a << " que no fue asignado." << endl;
-            }
         }
-    
     }
     // escribo las asignaciones en el archivo de salida
     for (int i = 0; i < vec_sol.size(); i++) {
@@ -246,7 +245,6 @@ int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> c
     
 }
 
-
 int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     // nos creamos el archivo de salida
     string solucion_rel = "solucion_busqueda_local_relocate";
@@ -276,13 +274,11 @@ int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capac
                 // hacemos una especie de poda para no repetir casos
                 if (h > w){
                     // iteramos por todos los vendedores de los depositos distintos a w
-                    for(int g = 0; g > solucion_inicial[h].size(); g++){
+                    for(int g = 0; g < solucion_inicial[h].size(); g++){
                         // verificamos que haya espacio para el swap en ambos depositos
-                        cout << "hola" << endl;
                         if((capacidad_disponible[w] + demandas[w][solucion_inicial[w][t]] >= demandas[h][solucion_inicial[h][g]]) && (capacidad_disponible[h] + demandas[h][solucion_inicial[h][g]] >= demandas[w][solucion_inicial[w][t]])){
                             // ver si esta solucion factible es una mejor solucion que la original
                             int dist_parcial = dist_total - distancias[w][solucion_inicial[w][t]] - distancias[h][solucion_inicial[h][g]] + distancias[w][solucion_inicial[h][g]] + distancias[h][solucion_inicial[w][t]];
-                            cout << dist_parcial << endl;
                             if(dist_parcial < dist_parcial_aux){
                                 dist_parcial_aux = dist_parcial;
                                 solucion_parcial = solucion_inicial;
@@ -322,7 +318,7 @@ int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capac
 
 
 int main(int argc, char** argv) {
-    std::string filenamee = "instances/gap/gap_a/a05100";
+    std::string filenamee = "instances/gap/gap_b/b05100";
     std::cout << "Reading file " << filenamee << std::endl;
 
     // leemos el archivo
