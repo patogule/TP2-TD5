@@ -7,8 +7,8 @@
 using namespace std;
 
 // FUNCIONES AUXILIARES
-vector<vector<int>> readDataFromFile(const string& filename) {
-    vector<vector<int>> data;
+vector<vector<int> > readDataFromFile(const string& filename) {
+    vector<vector<int> > data;
     ifstream input_file(filename);
     string line;
     
@@ -33,19 +33,6 @@ vector<vector<int>> readDataFromFile(const string& filename) {
     return data;
 }
 
-// vector<string> split(const string& str, char delimiter) {
-//     vector<string> tokens;
-//     string token;
-//     istringstream tokenStream(str);
-    
-//     while (getline(tokenStream, token, delimiter)) {
-//         cout << "mmmmmm" << endl;
-//         tokens.push_back(token);
-//     }
-
-//     return tokens;
-// }
-
 int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
     int resultado = 0;
     for (int l = 0; l < vec.size(); l++){
@@ -58,11 +45,14 @@ int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
 
 
 // HEURISTICAS CONSTRUCTIVAS
-int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
+int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_vmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
 
     // me creo el archivo de salida
     string solucion = "solucion_heuristica_vmc";
     ofstream output_file(solucion);
+
+    // me creo el vector solucion
+    vector<vector<int> > vec_sol(depositos, vector<int>(vendedores, -1));
 
     // me creo mi vector de capacidades restantes
     vector<int> capacidades_restantes = capacidades;
@@ -85,13 +75,7 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancia
         if(min != 99999999){
             capacidades_restantes[deposito_mas_cerca] = capacidades_restantes[deposito_mas_cerca] - demandas[deposito_mas_cerca][a];
             dist_total = dist_total + min;
-            for (int i = 0; i < deposito_mas_cerca; i++) {
-            if (i == deposito_mas_cerca) {
-                output_file << a;
-            } else {
-                output_file << std::endl;
-            }
-            }
+            vec_sol[deposito_mas_cerca].push_back(a);
         }
         else{
             // busco la distancia mas grande del vendedor a que no pudo ser asignado
@@ -101,24 +85,32 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancia
                     max = distancias[c][a];
             }
             dist_total = dist_total + (3 * max);
+            cout << "Se agrego una penalizacion de" << 3 * max << " por el vendedor " << a << " que no fue asignado." << endl;
             }
         }
     
     }
+    // escribo las asignaciones en el archivo de salida
+    for (int i = 0; i < vec_sol.size(); i++) {
+        for(int s = 0; s < vec_sol[i].size(); s++){
+            if (vec_sol[i][s] != -1){
+                sol_inicial_h_vmc[i].push_back(vec_sol[i][s]);
+                output_file << vec_sol[i][s] << " ";
+            }
+        }
+        output_file << endl;
+    }
+
     output_file.close();
-    std::cout << "File created and written successfully - '" << solucion << "'" << std::endl;
     return dist_total;
 }
 
-int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
+int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
 
     vector<int> capacidades_restantes = capacidades;
 
     // me creo vectores solucion 
-    vector<vector<int> > rta;
-    for( int v = 0; v < depositos; v++){
-        rta.push_back({});
-    }
+    vector<vector<int> > rta(depositos, std::vector<int>());
 
     // me creo una variable para guardar la distancia total recorrida
     int dist_total = 0;
@@ -150,7 +142,7 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancia
                 dist_total = dist_total + min;
                 // agrego la asignacion al vector respuesta
                 rta[d].push_back(vendedor_mas_cerca);
-                
+                sol_inicial_h_dmc[d].push_back(vendedor_mas_cerca);
             }
             else{
                 condicion = false;
@@ -165,9 +157,10 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancia
                 if (distancias[p][x] > max){
                     max = distancias[p][x];
                 }
-                dist_total = dist_total + (3 * max);
-
             }
+
+            dist_total = dist_total + (3 * max);
+            cout << "Se agrego una penalizacion de" << 3 * max << " por el vendedor " << x << " que no fue asignado." << endl;
         }
     }
     // escribir en el txt
@@ -183,7 +176,6 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancia
             output_file << "\n"; // Nueva línea después de cada vector interno
         }
         output_file.close();
-        std::cout << "Vector de vectores de enteros escrito en el archivo correctamente." << std::endl;
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
@@ -192,74 +184,35 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancia
 
 
 // BUSQUEDA LOCAL
-int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
-
-    // leemos el archivo de entrada
-    string filename(filenamee);
-    vector<string> lines;
-    string line;
-
-    ifstream input_file(filename);
-    if (!input_file.is_open()) {
-        cout << "Could not open the file - '"
-             << filename << "'" << endl;
-        return EXIT_FAILURE;
-    }
-
-    while (getline(input_file, line)) {
-        cout << line;
-        lines.push_back(line);
-    }
+int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
 
     // calculamos la capacidad disponible de cada deposito en la solucion original
-    vector<int> capacidad_disponible;
-    for (size_t i = 0; i < lines.size(); ++i) {
-        const string& line = lines[i];
-        int sum = 0;
-        string number_str;
-        for (char c : line) {
-            if (isdigit(c)) {
-                number_str += c;
-            } else if (!number_str.empty()) {
-                sum += demandas[i][stoi(number_str)];
-                number_str.clear();
-            }
+    vector<int> capacidad_disponible(depositos);
+    for (size_t i = 0; i < solucion_inicial.size(); ++i) {
+        capacidad_disponible[i] = capacidades[i];
+        for (int pp = 0; pp < solucion_inicial[i].size(); pp++) {
+            capacidad_disponible[i] = capacidad_disponible[i] - demandas[i][solucion_inicial[i][pp]];
         }
-        if (!number_str.empty()) {
-            sum += stoi(number_str);
-        }
-        capacidad_disponible[i] = capacidades[i] - sum;
-        cout << "Sum of numbers in line " << i << ": " << sum << "capacidad disponible: " << capacidad_disponible[i] << endl;
-    }
-    
-    // convertimos nuestras lines de string a int
-    ////////////////// chequear
-    vector<vector<int> > lines_int;
-    for (size_t j = 0; j < lines.size(); ++j){
-        //for (int n = 0; n < lines[j].size();n++){
-            lines[j];
-            lines_int[j][n] = stoi(lines[j]);
-        //}
     }
 
     // distancia total original
-    int dist_total = distancia_total(lines_int, distancias);
+    int dist_total = distancia_total(solucion_inicial, distancias);
 
     // iteramos por los depositos
-    for (int z = 0; z < lines_int.size(); z++){
+    for (int z = 0; z < solucion_inicial.size(); z++){
         // iteramos por los vendedores
-        for(int k = 0; k < lines_int[z].size(); k++){
+        for(int k = 0; k < solucion_inicial[z].size(); k++){
             // cada vendedor lo cambiamos de dposito
-            for(int q = 0; k < lines_int.size(); q++){
+            for(int q = 0; q < solucion_inicial.size(); q++){
                 // calcular la distancia total de la nueva solucion
                 if (q != z){
-                    if( capacidad_disponible[q] >= demandas[z][lines_int[z][k]]){
-                        int dist_parcial = dist_total - distancias[z][lines_int[z][k]] + distancias[q][lines_int[z][k]];
+                    if( capacidad_disponible[q] >= demandas[z][solucion_inicial[z][k]]){
+                        int dist_parcial = dist_total - distancias[z][solucion_inicial[z][k]] + distancias[q][solucion_inicial[q][k]];
                         if (dist_parcial < dist_total){
                             dist_total = dist_parcial;
                             // escribimos la nueva solucion parcial en nuestro archivo salida
-                            lines_int[q].push_back(lines_int[z][k]);
-                            lines_int[z][k] = -1;
+                            solucion_inicial[q].push_back(solucion_inicial[z][k]);
+                            solucion_inicial[z][k] = -1;
                         }
                     }
 
@@ -268,6 +221,7 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
         }
 
     }
+    cout << "8" << endl;
 
     // escribir en el txt
     // nos creamos el archivo de salida
@@ -275,10 +229,10 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
     ofstream output_file_rel(solucion_rel);
 
     if (output_file_rel.is_open()) {
-        for (int u = 0; u < lines_int.size(); u++){
-            for (int y = 0; y < lines_int[u].size(); y++){
-                if (lines_int[u][y] != -1){
-                    output_file_rel << lines_int[u][y] << " ";
+        for (int u = 0; u < solucion_inicial.size(); u++){
+            for (int y = 0; y < solucion_inicial[u].size(); y++){
+                if (solucion_inicial[u][y] != -1){
+                    output_file_rel << solucion_inicial[u][y] << " ";
                 }
             }
             output_file_rel << "\n"; // Nueva línea después de cada vector interno
@@ -288,11 +242,10 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
-
-    input_file.close();
-    return EXIT_SUCCESS;
+    return dist_total;
     
 }
+/*
 
 int swap(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     // nos creamos el archivo de salida
@@ -377,6 +330,7 @@ int swap(string filenamee, vector<int> capacidades, vector<vector<int> > demanda
         }
     }
 }
+*/
 
 
 int main(int argc, char** argv) {
@@ -395,18 +349,13 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    while (getline(input_file, line)) {
-        lines.push_back(line);
-    }
-
     //definimos nuestras variables
     int depositos;
     int vendedores;
 
-    cout << "1" << endl;
+    input_file >> depositos >> vendedores;
 
-    vector<vector<int> >distancias(depositos, vector<int>(vendedores, 0));
-    cout << "2" << endl;
+    vector<vector<int> > distancias(depositos, vector<int>(vendedores, 0));
 
     for(int deposito = 0; deposito < depositos; deposito++){
         for (int vendedor = 0; vendedor < vendedores; vendedor++){
@@ -414,7 +363,6 @@ int main(int argc, char** argv) {
         distancias[deposito][vendedor] = stoi(line);
         }
     }
-    cout << "3" << endl;
 
     vector<vector<int> >demandas(depositos, vector<int>(vendedores, 0));
 
@@ -432,10 +380,26 @@ int main(int argc, char** argv) {
         input_file >> line;
         capacidades[deposito] = stoi(line);
     }
+    cout <<  endl << "//////////////////////////////////////////////////" << endl;
+    cout << "Corriendo heurisstica del vecino mas cercano..." << endl;
+    vector<vector<int> > sol_inicial_h_vmc(depositos);
+    int resultado_h_vmc = heuristica_vmc(depositos, vendedores, sol_inicial_h_vmc, distancias, demandas, capacidades);
+    cout << "La heurisstica del vecino mas cercano recorre una distancia total de: " << resultado_h_vmc << endl;
+    cout << "//////////////////////////////////////////////////" << endl << endl;
 
-    heuristica_vmc(depositos, vendedores, distancias, demandas, capacidades);
+    cout << "//////////////////////////////////////////////////" << endl;
+    cout << "Corriendo heurisstica del depocito mas cercano..." << endl;
+    vector<vector<int> > sol_inicial_h_dmc(depositos);
+    int resultado_h_dmc = heuristica_dmc(depositos, vendedores, sol_inicial_h_dmc, distancias, demandas, capacidades);
+    cout << "La heurisstica del depocito mas cercano recorre una distancia total de: " << resultado_h_dmc << endl;
+    cout << "//////////////////////////////////////////////////" << endl << endl;
 
-    //relocate("resultados.txt", cap, demanda_prueba);
+    cout << "//////////////////////////////////////////////////" << endl;
+    cout << "Corriendo busqueda local relocate..." << endl;
+    int resultado_relocate = relocate(sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
+    cout << "Busqueda local relocate recorre una distancia total de: " << resultado_relocate << endl;
+    cout << "//////////////////////////////////////////////////" << endl << endl;
+
 
     return 0;
 }
