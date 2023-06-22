@@ -105,7 +105,7 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
     return dist_total;
 }
 
-int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
+int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
 
     vector<int> capacidades_restantes = capacidades;
 
@@ -197,6 +197,9 @@ int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> c
 
     // distancia total original
     int dist_total = distancia_total(solucion_inicial, distancias);
+    int dist_parcial_aux = dist_total;
+
+    vector<vector<int> > solucion_parcial = solucion_inicial;
 
     // iteramos por los depositos
     for (int z = 0; z < solucion_inicial.size(); z++){
@@ -206,22 +209,20 @@ int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> c
             for(int q = 0; q < solucion_inicial.size(); q++){
                 // calcular la distancia total de la nueva solucion
                 if (q != z){
-                    if( capacidad_disponible[q] >= demandas[z][solucion_inicial[z][k]]){
-                        int dist_parcial = dist_total - distancias[z][solucion_inicial[z][k]] + distancias[q][solucion_inicial[q][k]];
-                        if (dist_parcial < dist_total){
-                            dist_total = dist_parcial;
-                            // escribimos la nueva solucion parcial en nuestro archivo salida
-                            solucion_inicial[q].push_back(solucion_inicial[z][k]);
-                            solucion_inicial[z][k] = -1;
+                    if( capacidad_disponible[q] >= demandas[q][solucion_inicial[z][k]]){
+                        int dist_parcial = dist_total - distancias[z][solucion_inicial[z][k]] + distancias[q][solucion_inicial[z][k]];
+                        if (dist_parcial < dist_parcial_aux){
+                            dist_parcial_aux = dist_parcial;
+                            solucion_parcial = solucion_inicial;
+                            // escribimos la nueva solucion parcial en nuestro vector de solucion parcial
+                            solucion_parcial[q].push_back(solucion_parcial[z][k]);
+                            solucion_parcial[z][k] = -1;
                         }
                     }
-
                 }
             }
         }
-
     }
-    cout << "8" << endl;
 
     // escribir en el txt
     // nos creamos el archivo de salida
@@ -229,99 +230,67 @@ int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> c
     ofstream output_file_rel(solucion_rel);
 
     if (output_file_rel.is_open()) {
-        for (int u = 0; u < solucion_inicial.size(); u++){
-            for (int y = 0; y < solucion_inicial[u].size(); y++){
-                if (solucion_inicial[u][y] != -1){
-                    output_file_rel << solucion_inicial[u][y] << " ";
+        for (int u = 0; u < solucion_parcial.size(); u++){
+            for (int y = 0; y < solucion_parcial[u].size(); y++){
+                if (solucion_parcial[u][y] != -1){
+                    output_file_rel << solucion_parcial[u][y] << " ";
                 }
             }
             output_file_rel << "\n"; // Nueva línea después de cada vector interno
         }
         output_file_rel.close();
-        std::cout << "Vector de vectores de enteros escrito en el archivo correctamente." << std::endl;
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
-    return dist_total;
+    return dist_parcial_aux;
     
 }
-/*
 
-int swap(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+
+int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     // nos creamos el archivo de salida
     string solucion_rel = "solucion_busqueda_local_relocate";
     ofstream output_file_rel(solucion_rel);
 
-    // leemos el archivo de entrada
-    string filename(filenamee);
-    vector<string> lines;
-    string line;
-
-    ifstream input_file(filename);
-    if (!input_file.is_open()) {
-        cout << "Could not open the file - '"
-             << filename << "'" << endl;
-        return EXIT_FAILURE;
-    }
-
-    while (getline(input_file, line)) {
-        cout << line;
-        lines.push_back(line);
-    }
-
     // calculamos la capacidad disponible de cada deposito en la solucion original
-    vector<int> capacidad_disponible;
-    for (size_t i = 0; i < lines.size(); ++i) {
-        const string& line = lines[i];
-        int sum = 0;
-        string number_str;
-        for (char c : line) {
-            if (isdigit(c)) {
-                number_str += c;
-            } else if (!number_str.empty()) {
-                sum += demandas[i][stoi(number_str)];
-                number_str.clear();
-            }
+    vector<int> capacidad_disponible(depositos);
+    for (size_t i = 0; i < solucion_inicial.size(); ++i) {
+        capacidad_disponible[i] = capacidades[i];
+        for (int pp = 0; pp < solucion_inicial[i].size(); pp++) {
+            capacidad_disponible[i] = capacidad_disponible[i] - demandas[i][solucion_inicial[i][pp]];
         }
-        if (!number_str.empty()) {
-            sum += stoi(number_str);
-        }
-        capacidad_disponible[i] = capacidades[i] - sum;
-        cout << "Sum of numbers in line " << i << ": " << sum << "capacidad disponible: " << capacidad_disponible[i] << endl;
-    }
-    
-
-    // convertimos nuestras lines de string a int
-    vector<vector<int> > lines_int;
-    for (size_t j = 0; j < lines.size(); ++j){
-        vector<std::string> depo;
-        char delim = ' ';
-        depo = split(line, delim);
-        vector<int> depo_int;
-        for (string numerito : depo){
-            depo_int.push_back(stod(numerito));
-        }
-        lines_int.push_back(depo_int);
     }
 
     // distancia total original
-    int dist_total = distancia_total(lines_int, distancias);
+    int dist_total = distancia_total(solucion_inicial, distancias);
+    int dist_parcial_aux = dist_total;
+
+    vector<vector<int> > solucion_parcial = solucion_inicial;
 
     // recorremos cada deposito
-    for (int w = 0; w < lines_int.size(); w++){
+    for (int w = 0; w < solucion_inicial.size(); w++){
         // recorremos cada vendedor
-        for (int t = 0; t < lines_int[w].size(); t++){
+        for (int t = 0; t < solucion_inicial[w].size(); t++){
             // para cada vendedor queremos iterar por los depositos
-            for(int h = 0; h < lines_int.size(); h++){
+            for(int h = 0; h < solucion_inicial.size(); h++){
                 // hacemos una especie de poda para no repetir casos
                 if (h > w){
                     // iteramos por todos los vendedores de los depositos distintos a w
-                    for(int g = 0; g > lines_int[h].size(); g++){
+                    for(int g = 0; g > solucion_inicial[h].size(); g++){
                         // verificamos que haya espacio para el swap en ambos depositos
-                        if((capacidad_disponible[w] + demandas[w][lines_int[w][t]] >= demandas[h][lines_int[h][g]]) && (capacidad_disponible[h] + demandas[h][lines_int[h][g]] >= demandas[w][lines_int[w][t]])){
+                        cout << "hola" << endl;
+                        if((capacidad_disponible[w] + demandas[w][solucion_inicial[w][t]] >= demandas[h][solucion_inicial[h][g]]) && (capacidad_disponible[h] + demandas[h][solucion_inicial[h][g]] >= demandas[w][solucion_inicial[w][t]])){
                             // ver si esta solucion factible es una mejor solucion que la original
-                            if(dist_total - distancias[w][lines_int[w][t]] - distancias[h][lines_int[h][g]] + distancias[w][lines_int[h][g]] + distancias[h][lines_int[w][t]] > dist_total){
-
+                            int dist_parcial = dist_total - distancias[w][solucion_inicial[w][t]] - distancias[h][solucion_inicial[h][g]] + distancias[w][solucion_inicial[h][g]] + distancias[h][solucion_inicial[w][t]];
+                            cout << dist_parcial << endl;
+                            if(dist_parcial < dist_parcial_aux){
+                                dist_parcial_aux = dist_parcial;
+                                solucion_parcial = solucion_inicial;
+                                // escribimos la nueva solucion parcial en nuestro vector de solucion parcial
+                                solucion_parcial[w].push_back(solucion_parcial[h][g]);
+                                solucion_parcial[h][g] = -1;
+                                solucion_parcial[h].push_back(solucion_parcial[w][t]);
+                                solucion_parcial[w][t] = -1;
                             }
                         }
                     }
@@ -329,8 +298,27 @@ int swap(string filenamee, vector<int> capacidades, vector<vector<int> > demanda
             }
         }
     }
+    // escribir en el txt
+    // nos creamos el archivo de salida
+    string solucion_swap = "solucion_busqueda_local_swap";
+    ofstream output_file_swap(solucion_swap);
+
+    if (output_file_swap.is_open()) {
+        for (int u = 0; u < solucion_parcial.size(); u++){
+            for (int y = 0; y < solucion_parcial[u].size(); y++){
+                if (solucion_parcial[u][y] != -1){
+                    output_file_swap << solucion_parcial[u][y] << " ";
+                }
+            }
+            output_file_swap << "\n"; // Nueva línea después de cada vector interno
+        }
+        output_file_swap.close();
+    } else {
+        std::cout << "No se pudo abrir el archivo." << std::endl;
+    }
+    return dist_parcial_aux;
 }
-*/
+
 
 
 int main(int argc, char** argv) {
@@ -395,11 +383,32 @@ int main(int argc, char** argv) {
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
-    cout << "Corriendo busqueda local relocate..." << endl;
-    int resultado_relocate = relocate(sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
-    cout << "Busqueda local relocate recorre una distancia total de: " << resultado_relocate << endl;
+    cout << "Corriendo busqueda local relocate de la heuristica vecino mas cercano..." << endl;
+    int resultado_relocate_vmc = relocate(sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
+    cout << "Busqueda local relocate recorre una distancia total de: " << resultado_relocate_vmc << endl;
+    cout << "La distancia decrecio en " << resultado_h_vmc - resultado_relocate_vmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
+    cout << "//////////////////////////////////////////////////" << endl;
+    cout << "Corriendo busqueda local relocate de deposito mas cercano..." << endl;
+    int resultado_relocate_dmc = relocate(sol_inicial_h_dmc, depositos, capacidades, demandas, distancias);
+    cout << "Busqueda local relocate recorre una distancia total de: " << resultado_relocate_dmc << endl;
+    cout << "La distancia decrecio en " << resultado_h_dmc - resultado_relocate_dmc << endl;
+    cout << "//////////////////////////////////////////////////" << endl << endl;
+
+    cout << "//////////////////////////////////////////////////" << endl;
+    cout << "Corriendo busqueda local swap de la heuristica vecino mas cercano..." << endl;
+    int resultado_swap_vmc = swap(sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
+    cout << "Busqueda local swap recorre una distancia total de: " << resultado_swap_vmc << endl;
+    cout << "La distancia decrecio en " << resultado_h_vmc - resultado_swap_vmc << endl;
+    cout << "//////////////////////////////////////////////////" << endl << endl;
+
+    cout << "//////////////////////////////////////////////////" << endl;
+    cout << "Corriendo busqueda local swap de la heuristica deposito mas cercano..." << endl;
+    int resultado_swap_dmc = swap(sol_inicial_h_dmc, depositos, capacidades, demandas, distancias);
+    cout << "Busqueda local swap recorre una distancia total de: " << resultado_swap_dmc << endl;
+    cout << "La distancia decrecio en " << resultado_h_dmc - resultado_swap_dmc << endl;
+    cout << "//////////////////////////////////////////////////" << endl << endl;
 
     return 0;
 }
