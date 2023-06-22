@@ -56,6 +56,7 @@ int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
     return resultado;
 } 
 
+
 // HEURISTICAS CONSTRUCTIVAS
 int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
 
@@ -189,8 +190,6 @@ void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distanci
 }
 
 
-
-
 // BUSQUEDA LOCAL
 int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     // nos creamos el archivo de salida
@@ -286,16 +285,95 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
 
     }
 
-    lines_int[0] = 2 9 8 5  
-    lines_int[1] = 4 1
-    lines_int[2] = 6 7
-    
-
     input_file.close();
     return EXIT_SUCCESS;
     
 }
 
+int swap(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+    // nos creamos el archivo de salida
+    string solucion_rel = "solucion_busqueda_local_relocate";
+    ofstream output_file_rel(solucion_rel);
+
+    // leemos el archivo de entrada
+    string filename(filenamee);
+    vector<string> lines;
+    string line;
+
+    ifstream input_file(filename);
+    if (!input_file.is_open()) {
+        cout << "Could not open the file - '"
+             << filename << "'" << endl;
+        return EXIT_FAILURE;
+    }
+
+    while (getline(input_file, line)) {
+        cout << line;
+        output_file_rel << line << endl;
+        lines.push_back(line);
+    }
+
+    // calculamos la capacidad disponible de cada deposito en la solucion original
+    vector<int> capacidad_disponible;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        const string& line = lines[i];
+        int sum = 0;
+        string number_str;
+        for (char c : line) {
+            if (isdigit(c)) {
+                number_str += c;
+            } else if (!number_str.empty()) {
+                sum += demandas[i][stoi(number_str)];
+                number_str.clear();
+            }
+        }
+        if (!number_str.empty()) {
+            sum += stoi(number_str);
+        }
+        capacidad_disponible[i] = capacidades[i] - sum;
+        cout << "Sum of numbers in line " << i << ": " << sum << "capacidad disponible: " << capacidad_disponible[i] << endl;
+    }
+    
+
+    // convertimos nuestras lines de string a int
+    vector<vector<int> > lines_int;
+    for (size_t j = 0; j < lines.size(); ++j){
+        vector<std::string> depo;
+        char delim = ' ';
+        depo = split(line, delim);
+        vector<int> depo_int;
+        for (string numerito : depo){
+            depo_int.push_back(stod(numerito));
+        }
+        lines_int.push_back(depo_int);
+    }
+
+    // distancia total original
+    int dist_total = distancia_total(lines_int, distancias);
+
+    // recorremos cada deposito
+    for (int w = 0; w < lines_int.size(); w++){
+        // recorremos cada vendedor
+        for (int t = 0; t < lines_int[w].size(); t++){
+            // para cada vendedor queremos iterar por los depositos
+            for(int h = 0; h < lines_int.size(); h++){
+                // hacemos una especie de poda para no repetir casos
+                if (h > w){
+                    // iteramos por todos los vendedores de los depositos distintos a w
+                    for(int g = 0; g > lines_int[h].size(); g++){
+                        // verificamos que haya espacio para el swap en ambos depositos
+                        if((capacidad_disponible[w] + demandas[w][lines_int[w][t]] >= demandas[h][lines_int[h][g]]) && (capacidad_disponible[h] + demandas[h][lines_int[h][g]] >= demandas[w][lines_int[w][t]])){
+                            // ver si esta solucion factible es una mejor solucion que la original
+                            if(dist_total - distancias[w][lines_int[w][t]] - distancias[h][lines_int[h][g]] + distancias[w][lines_int[h][g]] + distancias[h][lines_int[w][t]] > dist_total){
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 int main(int argc, char** argv) {
