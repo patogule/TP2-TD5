@@ -33,18 +33,18 @@ vector<vector<int>> readDataFromFile(const string& filename) {
     return data;
 }
 
-vector<string> split(const string& str, char delimiter) {
-    vector<string> tokens;
-    string token;
-    istringstream tokenStream(str);
+// vector<string> split(const string& str, char delimiter) {
+//     vector<string> tokens;
+//     string token;
+//     istringstream tokenStream(str);
     
-    while (getline(tokenStream, token, delimiter)) {
-        cout << "mmmmmm" << endl;
-        tokens.push_back(token);
-    }
+//     while (getline(tokenStream, token, delimiter)) {
+//         cout << "mmmmmm" << endl;
+//         tokens.push_back(token);
+//     }
 
-    return tokens;
-}
+//     return tokens;
+// }
 
 int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
     int resultado = 0;
@@ -110,7 +110,7 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> > distancia
     return dist_total;
 }
 
-void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
+int heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
 
     vector<int> capacidades_restantes = capacidades;
 
@@ -187,14 +187,12 @@ void heuristica_dmc(int depositos, int vendedores, vector<vector<int> > distanci
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
+    return dist_total;
 }
 
 
 // BUSQUEDA LOCAL
 int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
-    // nos creamos el archivo de salida
-    string solucion_rel = "solucion_busqueda_local_relocate";
-    ofstream output_file_rel(solucion_rel);
 
     // leemos el archivo de entrada
     string filename(filenamee);
@@ -210,7 +208,6 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
 
     while (getline(input_file, line)) {
         cout << line;
-        output_file_rel << line << endl;
         lines.push_back(line);
     }
 
@@ -235,18 +232,14 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
         cout << "Sum of numbers in line " << i << ": " << sum << "capacidad disponible: " << capacidad_disponible[i] << endl;
     }
     
-
     // convertimos nuestras lines de string a int
+    ////////////////// chequear
     vector<vector<int> > lines_int;
     for (size_t j = 0; j < lines.size(); ++j){
-        vector<std::string> depo;
-        char delim = ' ';
-        depo = split(line, delim);
-        vector<int> depo_int;
-        for (string numerito : depo){
-            depo_int.push_back(stod(numerito));
-        }
-        lines_int.push_back(depo_int);
+        //for (int n = 0; n < lines[j].size();n++){
+            lines[j];
+            lines_int[j][n] = stoi(lines[j]);
+        //}
     }
 
     // distancia total original
@@ -266,16 +259,7 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
                             dist_total = dist_parcial;
                             // escribimos la nueva solucion parcial en nuestro archivo salida
                             lines_int[q].push_back(lines_int[z][k]);
-                            lines_int[z].erase(k);
-
-                            input_file.seekp(0); // Vuelve al inicio del archivo
-                            input_file.truncate(0); // Borra el contenido existente
-
-
-
-
-                            
-
+                            lines_int[z][k] = -1;
                         }
                     }
 
@@ -283,6 +267,26 @@ int relocate(string filenamee, vector<int> capacidades, vector<vector<int> > dem
             }
         }
 
+    }
+
+    // escribir en el txt
+    // nos creamos el archivo de salida
+    string solucion_rel = "solucion_busqueda_local_relocate";
+    ofstream output_file_rel(solucion_rel);
+
+    if (output_file_rel.is_open()) {
+        for (int u = 0; u < lines_int.size(); u++){
+            for (int y = 0; y < lines_int[u].size(); y++){
+                if (lines_int[u][y] != -1){
+                    output_file_rel << lines_int[u][y] << " ";
+                }
+            }
+            output_file_rel << "\n"; // Nueva línea después de cada vector interno
+        }
+        output_file_rel.close();
+        std::cout << "Vector de vectores de enteros escrito en el archivo correctamente." << std::endl;
+    } else {
+        std::cout << "No se pudo abrir el archivo." << std::endl;
     }
 
     input_file.close();
@@ -309,7 +313,6 @@ int swap(string filenamee, vector<int> capacidades, vector<vector<int> > demanda
 
     while (getline(input_file, line)) {
         cout << line;
-        output_file_rel << line << endl;
         lines.push_back(line);
     }
 
@@ -396,100 +399,43 @@ int main(int argc, char** argv) {
         lines.push_back(line);
     }
 
-    input_file >> line;
-
-    char delimiter = ' ';
-    vector<string> linea_0 = split(line, delimiter);
+    //definimos nuestras variables
+    int depositos;
+    int vendedores;
 
     cout << "1" << endl;
-
-    //definimos nuestras variables
-    cout << linea_0[0] << endl;
-    cout << typeid(linea_0[0]).name() << endl;
-
-    int depositos = stoi(linea_0[0]);
-    int vendedores = stoi(linea_0[1]);
 
     vector<vector<int> >distancias(depositos, vector<int>(vendedores, 0));
     cout << "2" << endl;
 
-    int deposito = 0;
-    int vendedor = 0;
-    while(deposito < depositos){
-        string line;
+    for(int deposito = 0; deposito < depositos; deposito++){
+        for (int vendedor = 0; vendedor < vendedores; vendedor++){
         input_file >> line;
-        cout << line << endl;
-        vector<std::string> numeritos;
-        char delim = ' ';
-        numeritos = split(line, delim);
-        for (string numerito : numeritos){
-        distancias[deposito][vendedor] = stod(numerito);
-        vendedor++;
-        }
-        if (vendedor >= vendedores){
-            vendedor = 0;
-            deposito++;
+        distancias[deposito][vendedor] = stoi(line);
         }
     }
     cout << "3" << endl;
 
     vector<vector<int> >demandas(depositos, vector<int>(vendedores, 0));
 
-    int deposito_2 = 0;
-    int vendedor_2 = 0;
-    while(deposito_2 < depositos){
-        string line;
+    for(int deposito = 0; deposito < depositos; deposito++){
+        for (int vendedor = 0; vendedor < vendedores; vendedor++){
         input_file >> line;
-        vector<std::string> numeritos;
-        char delim = ' ';
-        numeritos = split(line, delim);
-        for (string numerito : numeritos){
-        demandas[deposito_2][vendedor_2] = stod(numerito);
-        vendedor_2++;
-        }
-        if (vendedor_2 >= vendedores){
-            vendedor_2 = 0;
-            deposito++;
+        demandas[deposito][vendedor] = stoi(line);
         }
     }
 
     vector<int> capacidades (depositos, 0);
 
-    int deposito_3 = 0;
-    while (deposito_3 < depositos){
+    for(int deposito = 0; deposito < depositos; deposito++){
         string line;
         input_file >> line;
-        vector<std::string> numeritos;
-        char delim = ' ';
-        numeritos = split(line, delim);
-        for (string numerito : numeritos){
-            capacidades[deposito_3] = stoi(numerito);
-        }
-        deposito_3++;
+        capacidades[deposito] = stoi(line);
     }
 
     heuristica_vmc(depositos, vendedores, distancias, demandas, capacidades);
 
-    vector<int> cap;
-    cap.push_back(30);
-    cap.push_back(7);
-    cap.push_back(20);
-
-    vector<int> incv;
-    incv.push_back(1);
-    incv.push_back(2);
-    incv.push_back(3);
-    incv.push_back(4);
-    incv.push_back(5);
-    incv.push_back(6);
-    incv.push_back(7);
-    incv.push_back(8);
-    incv.push_back(9);
-
-    vector<vector<int> > demanda_prueba;
-    demanda_prueba.push_back(incv);
-
-    relocate("resultados.txt", cap, demanda_prueba);
+    //relocate("resultados.txt", cap, demanda_prueba);
 
     return 0;
 }
