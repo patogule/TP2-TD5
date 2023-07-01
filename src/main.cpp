@@ -3,6 +3,9 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <chrono>
+#include <set>
+#include <random>
 
 using namespace std;
 
@@ -46,6 +49,7 @@ int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
 
 // HEURISTICAS CONSTRUCTIVAS
 int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_vmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
+    auto start = chrono::steady_clock::now();
 
     // me creo el archivo de salida
     string solucion = "solucion_heuristica_vmc";
@@ -101,10 +105,15 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
     }
 
     output_file.close();
+
+    auto end = chrono::steady_clock::now();
+    chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+
     return dist_total;
 }
 
 int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
+    auto start = chrono::steady_clock::now();
 
     vector<int> capacidades_restantes = capacidades;
 
@@ -178,12 +187,16 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
+    auto end = chrono::steady_clock::now();
+    chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+
     return dist_total;
 }
 
 
 // BUSQUEDA LOCAL
 int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+    auto start = chrono::steady_clock::now();
 
     // calculamos la capacidad disponible de cada deposito en la solucion original
     vector<int> capacidad_disponible(depositos);
@@ -241,11 +254,16 @@ int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> c
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
+    auto end = chrono::steady_clock::now();
+    chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+
     return dist_parcial_aux;
     
 }
 
 int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+    auto start = chrono::steady_clock::now();
+
     // nos creamos el archivo de salida
     string solucion_rel = "solucion_busqueda_local_relocate";
     ofstream output_file_rel(solucion_rel);
@@ -312,9 +330,83 @@ int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capac
     } else {
         std::cout << "No se pudo abrir el archivo." << std::endl;
     }
+    auto end = chrono::steady_clock::now();
+    chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+
     return dist_parcial_aux;
 }
 
+
+// METAHEURISTICA
+int grasp(int depositos, int vendedores, vector<vector<int> >& sol_inicial_grasp, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades, int n_iters, int rcl_size){
+    vector<vector<int> > vector_best;
+    int best;
+    for(int r = 0; r < n_iters; r++){
+        vector_best = greedy_randomized(depositos, vendedores, sol_inicial_grasp, distancias, demandas, capacidades, rcl_size);
+
+    }
+
+}
+
+vector<vector<int> > greedy_randomized(int depositos, int vendedores, vector<vector<int> >& sol_inicial_grasp, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades, int rcl_size){
+
+    // me creo el vector solucion
+    vector<vector<int> > vec_sol(depositos, vector<int>(vendedores, -1));
+
+    // me creo mi vector de capacidades restantes
+    vector<int> capacidades_restantes = capacidades;
+
+    // me creo una variable para guardar la distancia total recorrida
+    int dist_total = 0;
+    
+    // iterar por cada vendedor
+    for(int a = 0; a < vendedores; a++){
+        // itero por cada deposito
+        int min = 99999999;
+        // buscamos la cantidad de depositos mas cercanos que nos pide rcl_size
+        vector<int> depositos_mas_cercanos;
+        set<int> depositos_mas_cercanos_set;
+        vector<int> vector_min;
+        for (int q = 0; q < rcl_size; q++){
+            int min = 99999999;
+            for(int b = 0; b < depositos; b++){
+                if (distancias[b][a] < min && (capacidades_restantes[b] >= demandas[b][a]) && (depositos_mas_cercanos_set.count(b) == 0)){
+                    vector_min.push_back(distancias[b][a]);
+                    min = distancias[b][a];
+                    depositos_mas_cercanos.push_back(b);
+                    depositos_mas_cercanos_set.insert(b);
+                }
+            }
+        }
+
+        // elegir un deposito random dentro de los rcl_zise depositos mas cercanos
+        random_device rd;
+        mt19937 generador(rd());
+        uniform_int_distribution<> distribucion(0, depositos_mas_cercanos.size() - 1);
+        int indiceAleatorio = distribucion(generador);
+        int deposito_elegido = depositos_mas_cercanos[indiceAleatorio];
+        int min = vector_min[indiceAleatorio];
+
+        // escribo la asignacion en el archivo solucion
+        if(depositos_mas_cercanos.size() != 0){
+            capacidades_restantes[deposito_elegido] = capacidades_restantes[deposito_elegido] - demandas[deposito_elegido][a];
+            dist_total = dist_total + min;
+            vec_sol[deposito_elegido].push_back(a);
+        }
+        else{
+            // busco la distancia mas grande del vendedor a que no pudo ser asignado
+            int max = 0;
+            for(int c = 0; c < depositos; c++){
+                if (distancias[c][a] > max){
+                    max = distancias[c][a];
+                }
+            }
+            dist_total = dist_total + (3 * max);
+            cout << "Se agrego una penalizacion de" << 3 * max << " por el vendedor " << a << " que no fue asignado." << endl;
+        }
+    }
+    return vec_sol;
+}
 
 
 int main(int argc, char** argv) {
