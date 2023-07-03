@@ -6,6 +6,10 @@
 #include <chrono>
 #include <set>
 #include <random>
+#include "heuristica_vmc.cpp"
+#include "heuristica_dmc.cpp"
+#include "relocate.cpp"
+#include "swap.cpp"
 
 using namespace std;
 
@@ -48,6 +52,8 @@ int distancia_total(vector<vector<int> > vec, vector<vector<int> > distancias){
 
 
 // HEURISTICAS CONSTRUCTIVAS
+
+/*
 int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_vmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
     auto start = chrono::steady_clock::now();
 
@@ -111,6 +117,7 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
 
     return dist_total;
 }
+
 
 int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
     auto start = chrono::steady_clock::now();
@@ -192,9 +199,10 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
 
     return dist_total;
 }
-
+*/
 
 // BUSQUEDA LOCAL
+/*
 int relocate(vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     auto start = chrono::steady_clock::now();
 
@@ -335,7 +343,7 @@ int swap(vector<vector<int> > solucion_inicial, int depositos, vector<int> capac
 
     return dist_parcial_aux;
 }
-
+*/
 
 // METAHEURISTICA
 int grasp(int depositos, int vendedores, vector<vector<int> >& sol_inicial_grasp, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades, int n_iters, int rcl_size){
