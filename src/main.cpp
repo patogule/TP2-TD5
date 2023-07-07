@@ -425,6 +425,9 @@ int main(int argc, char** argv) {
     std::string filenamee = "instances/real/real_instance";
     std::cout << "Reading file " << filenamee << std::endl;
 
+    string soluciones = "soluciones";
+    ofstream output_file(soluciones);
+
     // leemos el archivo
     string filename(filenamee);
     vector<string> lines;
