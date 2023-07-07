@@ -434,7 +434,7 @@ int grasp(double& tiempo, int depositos, int vendedores, vector<vector<int> >& s
 }
 
 int main(int argc, char** argv) {
-    std::string filenamee = "instances/real/real_instance";
+    std::string filenamee = "instances/gap/gap_b/b20200";
     std::cout << "Reading file " << filenamee << std::endl;
 
     // leemos el archivo
