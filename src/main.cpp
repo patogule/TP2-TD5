@@ -38,7 +38,7 @@ vector<vector<int> > readDataFromFile(const string& filename) {
 
 
 // HEURISTICAS CONSTRUCTIVAS
-int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_vmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
+int heuristica_vmc(double& tiempo, int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_vmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
     auto start = chrono::steady_clock::now();
 
     // me creo el archivo de salida
@@ -98,11 +98,12 @@ int heuristica_vmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
 
     auto end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+    tiempo = tiempo_transcurrido.count();
 
     return dist_total;
 }
 
-int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
+int heuristica_dmc(double& tiempo, int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_dmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades ){
     auto start = chrono::steady_clock::now();
 
     vector<int> capacidades_restantes = capacidades;
@@ -179,13 +180,14 @@ int heuristica_dmc(int depositos, int vendedores, vector<vector<int> >& sol_inic
     }
     auto end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+    tiempo = tiempo_transcurrido.count();
 
     return dist_total;
 }
 
 
 // BUSQUEDA LOCAL
-int relocate(int dist_original, vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+int relocate(double& tiempo, int dist_original, vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     auto start = chrono::steady_clock::now();
 
     // calculamos la capacidad disponible de cada deposito en la solucion original
@@ -246,12 +248,13 @@ int relocate(int dist_original, vector<vector<int> > solucion_inicial, int depos
     }
     auto end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+    tiempo = tiempo_transcurrido.count();
 
     return dist_parcial_aux;
     
 }
 
-int swap(int dist_original, vector<vector<int> >& sol_swap, vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
+int swap(double& tiempo, int dist_original, vector<vector<int> >& sol_swap, vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     auto start = chrono::steady_clock::now();
 
     // nos creamos el archivo de salida
@@ -325,6 +328,7 @@ int swap(int dist_original, vector<vector<int> >& sol_swap, vector<vector<int> >
 
     auto end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+    tiempo = tiempo_transcurrido.count();
 
     return dist_parcial_aux;
 }
@@ -396,7 +400,9 @@ vector<vector<int> > greedy_randomized(int& dist_total_greedy, int depositos, in
     return vec_sol;
 }
 
-int grasp(int depositos, int vendedores, vector<vector<int> >& sol_grasp, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades, int n_iters, int rcl_size){
+int grasp(double& tiempo, int depositos, int vendedores, vector<vector<int> >& sol_grasp, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades, int n_iters, int rcl_size){
+    auto start = chrono::steady_clock::now();
+
     // inicializo el vector solucion y una distancia recorrida best en infinito
     vector<vector<int> > vector_best(depositos);
     int best = 999999999;
@@ -408,7 +414,8 @@ int grasp(int depositos, int vendedores, vector<vector<int> >& sol_grasp, vector
         vector<vector<int> > vector_current = greedy_randomized(dist_total_greedy, depositos, vendedores, distancias, demandas, capacidades, rcl_size);
         // aplico la busqueda local swap a nuestro greedy randomizado
         vector<vector<int> > sol_swap(depositos);
-        int dist_total = swap(dist_total_greedy, sol_swap, vector_current, depositos, capacidades, demandas, distancias);
+        double tiempo;
+        int dist_total = swap(tiempo, dist_total_greedy, sol_swap, vector_current, depositos, capacidades, demandas, distancias);
 
         // si esta nueva distancia total es menor a la best global esta va a ser mi nueva distancia best global
         //cout << "dist total best: " << best << endl << "dist de esta ronda: "  << dist_total << endl << endl;
@@ -418,15 +425,17 @@ int grasp(int depositos, int vendedores, vector<vector<int> >& sol_grasp, vector
         }
     }
     sol_grasp = vector_best;
+
+    auto end = chrono::steady_clock::now();
+    chrono::duration<double, std::milli> tiempo_transcurrido = end - start;
+    tiempo = tiempo_transcurrido.count();
+
     return best;
 }
 
 int main(int argc, char** argv) {
     std::string filenamee = "instances/real/real_instance";
     std::cout << "Reading file " << filenamee << std::endl;
-
-    string soluciones = "soluciones";
-    ofstream output_file(soluciones);
 
     // leemos el archivo
     string filename(filenamee);
@@ -473,55 +482,75 @@ int main(int argc, char** argv) {
     }
     cout <<  endl << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo heurisstica del vecino mas cercano..." << endl;
+    double tiempo_h_vmc;
     vector<vector<int> > sol_inicial_h_vmc(depositos);
-    int resultado_h_vmc = heuristica_vmc(depositos, vendedores, sol_inicial_h_vmc, distancias, demandas, capacidades);
-    cout << "La heurisstica del vecino mas cercano recorre una distancia total de: " << resultado_h_vmc << endl;
+    int resultado_h_vmc = heuristica_vmc(tiempo_h_vmc, depositos, vendedores, sol_inicial_h_vmc, distancias, demandas, capacidades);
+    cout << "La heuristica del vecino mas cercano recorre una distancia total de: " << resultado_h_vmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo heurisstica del depocito mas cercano..." << endl;
+    double tiempo_h_dmc;
     vector<vector<int> > sol_inicial_h_dmc(depositos);
-    int resultado_h_dmc = heuristica_dmc(depositos, vendedores, sol_inicial_h_dmc, distancias, demandas, capacidades);
-    cout << "La heurisstica del depocito mas cercano recorre una distancia total de: " << resultado_h_dmc << endl;
+    int resultado_h_dmc = heuristica_dmc(tiempo_h_dmc, depositos, vendedores, sol_inicial_h_dmc, distancias, demandas, capacidades);
+    cout << "La heuristica del depocito mas cercano recorre una distancia total de: " << resultado_h_dmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo busqueda local relocate de la heuristica vecino mas cercano..." << endl;
-    int resultado_relocate_vmc = relocate(resultado_h_vmc, sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
+    double tiempo_rel_vmc;
+    int resultado_relocate_vmc = relocate(tiempo_rel_vmc, resultado_h_vmc, sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
     cout << "Busqueda local relocate recorre una distancia total de: " << resultado_relocate_vmc << endl;
     cout << "La distancia decrecio en " << resultado_h_vmc - resultado_relocate_vmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo busqueda local relocate de deposito mas cercano..." << endl;
-    int resultado_relocate_dmc = relocate(resultado_h_dmc, sol_inicial_h_dmc, depositos, capacidades, demandas, distancias);
+    double tiempo_rel_dmc;
+    int resultado_relocate_dmc = relocate(tiempo_rel_dmc, resultado_h_dmc, sol_inicial_h_dmc, depositos, capacidades, demandas, distancias);
     cout << "Busqueda local relocate recorre una distancia total de: " << resultado_relocate_dmc << endl;
     cout << "La distancia decrecio en " << resultado_h_dmc - resultado_relocate_dmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo busqueda local swap de la heuristica vecino mas cercano..." << endl;
+    double tiempo_swap_vmc;
     vector<vector<int> > sol_swap_1(depositos);
-    int resultado_swap_vmc = swap(resultado_h_vmc, sol_swap_1, sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
+    int resultado_swap_vmc = swap(tiempo_swap_vmc, resultado_h_vmc, sol_swap_1, sol_inicial_h_vmc, depositos, capacidades, demandas, distancias);
     cout << "Busqueda local swap recorre una distancia total de: " << resultado_swap_vmc << endl;
     cout << "La distancia decrecio en " << resultado_h_vmc - resultado_swap_vmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo busqueda local swap de la heuristica deposito mas cercano..." << endl;
+    double tiempo_swap_dmc;
     vector<vector<int> > sol_swap_2(depositos);
-    int resultado_swap_dmc = swap(resultado_h_dmc, sol_swap_2, sol_inicial_h_dmc, depositos, capacidades, demandas, distancias);
+    int resultado_swap_dmc = swap(tiempo_swap_dmc, resultado_h_dmc, sol_swap_2, sol_inicial_h_dmc, depositos, capacidades, demandas, distancias);
     cout << "Busqueda local swap recorre una distancia total de: " << resultado_swap_dmc << endl;
     cout << "La distancia decrecio en " << resultado_h_dmc - resultado_swap_dmc << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
 
     cout << "//////////////////////////////////////////////////" << endl;
     cout << "Corriendo metaheuristica grasp..." << endl;
+    double tiempo_grasp;
     vector<vector<int> > sol_grasp(depositos);
-    int resultado_grasp = grasp(depositos, vendedores, sol_grasp, distancias, demandas, capacidades, 30, 7);
+    int resultado_grasp = grasp(tiempo_grasp, depositos, vendedores, sol_grasp, distancias, demandas, capacidades, 30, 7);
     cout << "La metaheuristica grasp recorre una distancia total de: " << resultado_grasp << endl;
     cout << "La distancia decrecio en " << resultado_h_vmc - resultado_grasp << " de la heuristica del vendedor mas cercano original" << endl;
     cout << "//////////////////////////////////////////////////" << endl << endl;
+
+    string soluciones = "soluciones";
+    //ofstream output_file(soluciones);
+    ofstream output_file(soluciones, ios::app);
+    output_file << "Archivo: " << filenamee << endl;
+    output_file << "Heuristica vendedor mas cercano: " << resultado_h_vmc << ". Tiempo de ejecucion: " << tiempo_h_vmc << endl;
+    output_file << "Heuristica deposito mas cercano: " << resultado_h_dmc << ". Tiempo de ejecucion: " << tiempo_h_dmc << endl;
+    output_file << "Busqueda local relocate sobre vcm: " << resultado_relocate_vmc << ". Tiempo de ejecucion: " << tiempo_rel_vmc << endl;
+    output_file << "Busqueda local relocate sobre dcm: " << resultado_relocate_dmc << ". Tiempo de ejecucion: " << tiempo_rel_dmc << endl;
+    output_file << "Busqueda local swap sobre vcm: " << resultado_swap_vmc << ". Tiempo de ejecucion: " << tiempo_swap_vmc << endl;
+    output_file << "Busqueda local swap sobre dcm: " << resultado_swap_dmc << ". Tiempo de ejecucion: " << tiempo_swap_dmc << endl;
+    output_file << "Metaheuristica grasp: " << resultado_grasp << ". Tiempo de ejecucion: " << tiempo_grasp << endl << endl;
+
 
     return 0;
 }

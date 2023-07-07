@@ -1,0 +1,63 @@
+Archivo: instances/gap/gap_a/a05100
+Heuristica vendedor mas cercano: 1709. Tiempo de ejecucion: 1.12237
+Heuristica deposito mas cercano: 1970. Tiempo de ejecucion: 0.929875
+Busqueda local relocate sobre vcm: 1709. Tiempo de ejecucion: 0.220958
+Busqueda local relocate sobre dcm: 1947. Tiempo de ejecucion: 0.087625
+Busqueda local swap sobre vcm: 1703. Tiempo de ejecucion: 0.882084
+Busqueda local swap sobre dcm: 1945. Tiempo de ejecucion: 0.489167
+Metaheuristica grasp: 3268. Tiempo de ejecucion: 58.6926
+
+Archivo: instances/gap/gap_a/a05200
+Heuristica vendedor mas cercano: 3259. Tiempo de ejecucion: 1.20242
+Heuristica deposito mas cercano: 3859. Tiempo de ejecucion: 1.74625
+Busqueda local relocate sobre vcm: 3259. Tiempo de ejecucion: 0.230666
+Busqueda local relocate sobre dcm: 3831. Tiempo de ejecucion: 0.210167
+Busqueda local swap sobre vcm: 3247. Tiempo de ejecucion: 0.933917
+Busqueda local swap sobre dcm: 3824. Tiempo de ejecucion: 0.734
+Metaheuristica grasp: 6503. Tiempo de ejecucion: 111.9
+
+Archivo: instances/gap/gap_a/a10100
+Heuristica vendedor mas cercano: 1390. Tiempo de ejecucion: 1.18617
+Heuristica deposito mas cercano: 1815. Tiempo de ejecucion: 0.477125
+Busqueda local relocate sobre vcm: 1390. Tiempo de ejecucion: 0.081958
+Busqueda local relocate sobre dcm: 1778. Tiempo de ejecucion: 0.189458
+Busqueda local swap sobre vcm: 1377. Tiempo de ejecucion: 0.269791
+Busqueda local swap sobre dcm: 1787. Tiempo de ejecucion: 0.198917
+Metaheuristica grasp: 2331. Tiempo de ejecucion: 65.5077
+
+Archivo: instances/gap/gap_a/a10200
+Heuristica vendedor mas cercano: 2670. Tiempo de ejecucion: 0.371292
+Heuristica deposito mas cercano: 3278. Tiempo de ejecucion: 0.644459
+Busqueda local relocate sobre vcm: 2670. Tiempo de ejecucion: 0.351375
+Busqueda local relocate sobre dcm: 3239. Tiempo de ejecucion: 0.332125
+Busqueda local swap sobre vcm: 2658. Tiempo de ejecucion: 1.19792
+Busqueda local swap sobre dcm: 3252. Tiempo de ejecucion: 0.592375
+Metaheuristica grasp: 4673. Tiempo de ejecucion: 124.16
+
+Archivo: instances/gap/gap_a/a20100
+Heuristica vendedor mas cercano: 1170. Tiempo de ejecucion: 1.38163
+Heuristica deposito mas cercano: 1508. Tiempo de ejecucion: 1.11329
+Busqueda local relocate sobre vcm: 1170. Tiempo de ejecucion: 0.274208
+Busqueda local relocate sobre dcm: 1476. Tiempo de ejecucion: 0.112458
+Busqueda local swap sobre vcm: 1169. Tiempo de ejecucion: 0.290375
+Busqueda local swap sobre dcm: 1476. Tiempo de ejecucion: 0.223958
+Metaheuristica grasp: 1707. Tiempo de ejecucion: 71.9847
+
+Archivo: instances/gap/gap_a/a20200
+Heuristica vendedor mas cercano: 2371. Tiempo de ejecucion: 1.19292
+Heuristica deposito mas cercano: 2902. Tiempo de ejecucion: 0.955458
+Busqueda local relocate sobre vcm: 2371. Tiempo de ejecucion: 0.576542
+Busqueda local relocate sobre dcm: 2865. Tiempo de ejecucion: 0.382709
+Busqueda local swap sobre vcm: 2360. Tiempo de ejecucion: 1.97362
+Busqueda local swap sobre dcm: 2867. Tiempo de ejecucion: 1.45046
+Metaheuristica grasp: 3271. Tiempo de ejecucion: 132.471
+
+Archivo: instances/real/real_instance
+Heuristica vendedor mas cercano: 306. Tiempo de ejecucion: 6.38858
+Heuristica deposito mas cercano: 1262. Tiempo de ejecucion: 7.58096
+Busqueda local relocate sobre vcm: 306. Tiempo de ejecucion: 4.87771
+Busqueda local relocate sobre dcm: 1246. Tiempo de ejecucion: 2.97904
+Busqueda local swap sobre vcm: 304. Tiempo de ejecucion: 21.5646
+Busqueda local swap sobre dcm: 1253. Tiempo de ejecucion: 18.6239
+Metaheuristica grasp: 1062. Tiempo de ejecucion: 1548.12
+
