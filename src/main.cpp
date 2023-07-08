@@ -6,6 +6,9 @@
 #include <chrono>
 #include <set>
 #include <random>
+#include "metaheuristica.cpp"
+#include "busquedas_locales.cpp"
+#include "heuristicas.cpp"
 
 using namespace std;
 
@@ -36,6 +39,7 @@ vector<vector<int> > readDataFromFile(const string& filename) {
     return data;
 }
 
+/*
 
 // HEURISTICAS CONSTRUCTIVAS
 int heuristica_vmc(double& tiempo, int depositos, int vendedores, vector<vector<int> >& sol_inicial_h_vmc, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades){
@@ -184,9 +188,12 @@ int heuristica_dmc(double& tiempo, int depositos, int vendedores, vector<vector<
 
     return dist_total;
 }
-
+*/
 
 // BUSQUEDA LOCAL
+
+/*
+
 int relocate(double& tiempo, int dist_original, vector<vector<int> > solucion_inicial, int depositos, vector<int> capacidades, vector<vector<int> > demandas, vector<vector<int> > distancias) {
     auto start = chrono::steady_clock::now();
 
@@ -333,8 +340,11 @@ int swap(double& tiempo, int dist_original, vector<vector<int> >& sol_swap, vect
     return dist_parcial_aux;
 }
 
+*/
 
 // METAHEURISTICA
+
+/*
 
 vector<vector<int> > greedy_randomized(int& dist_total_greedy, int depositos, int vendedores, vector<vector<int> > distancias,vector<vector<int> > demandas,vector<int> capacidades, int rcl_size){
 
@@ -432,6 +442,8 @@ int grasp(double& tiempo, int depositos, int vendedores, vector<vector<int> >& s
 
     return best;
 }
+
+*/
 
 int main(int argc, char** argv) {
     std::string filenamee = "instances/gap/gap_b/b20200";
