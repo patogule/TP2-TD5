@@ -6,7 +6,6 @@
 #include <chrono>
 #include <set>
 #include <random>
-#include "main.cpp"
 
 using namespace std;
 
